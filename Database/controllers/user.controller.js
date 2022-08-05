@@ -13,6 +13,13 @@ class UserController {
     const users = await db.query(`select * from person`);
     res.json(users.rows);
   }
+  async getUserByNickname(req, res) {
+    const nickname = req.query.nickname;
+    const user = await db.query(`select * from person where nickname = $1`, [
+      nickname,
+    ]);
+    res.json(user.rows[0]);
+  }
   async getOneUser(req, res) {
     const id = req.params.id;
     const user = await db.query(`select * from person where id = $1`, [id]);
