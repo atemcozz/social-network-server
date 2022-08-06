@@ -39,5 +39,23 @@ class TokenService {
     await db.query("delete from token where refreshToken=$1", [refreshToken]);
     return;
   }
+  validateAccessToken(token) {
+    try {
+      const userData = jwt.verify(token, JWT_ACCESS_SECRET);
+      return userData;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+  validateRefreshToken(token) {
+    try {
+      const userData = jwt.verify(token, JWT_REFRESH_SECRET);
+      return userData;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
 }
 module.exports = new TokenService();
