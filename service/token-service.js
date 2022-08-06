@@ -35,5 +35,9 @@ class TokenService {
       refreshToken,
     ]);
   }
+  async removeToken(refreshToken) {
+    await db.query("delete from token where refreshToken=$1", [refreshToken]);
+    return;
+  }
 }
 module.exports = new TokenService();

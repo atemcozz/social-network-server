@@ -60,11 +60,25 @@ class AuthController {
         user.rows[0].id,
         nickname
       );
+      await TokenService.saveToken(user.rows[0].id, refreshToken);
       res.cookie("refreshToken", refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,
       });
       res.json({ msg: "success", accessToken, refreshToken });
+    } catch (e) {
+      console.log(e);
+      res
+        .status(400)
+        .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
+    }
+  }
+  async logout(req, res) {
+    try {
+      const { refreshToken } = req.cookies;
+      await TokenService.removeToken(refreshToken);
+      res.clearCookie("refreshToken");
+      res.json({ msg: "success" });
     } catch (e) {
       console.log(e);
       res

@@ -5,7 +5,7 @@ const authController = require("../controllers/auth.controller");
 
 router.post("/register", registerValidation, authController.register);
 router.post("/login", authController.login);
-// router.post("/registration", userController.);
+router.post("/logout", authController.logout);
 
 // router.post("/logout", userController.);
 // //router.post("/activate/:link", userController.updateUser);
