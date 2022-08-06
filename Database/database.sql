@@ -36,3 +36,9 @@ create TABLE comment_like(
   FOREIGN KEY (user_id) REFERENCES person (id),
   FOREIGN KEY (comment_id) REFERENCES comment (id)
 );
+create TABLE token(
+  id SERIAL PRIMARY KEY,
+  token TEXT NOT NULL,
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES person (id)
+);

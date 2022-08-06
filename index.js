@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(cors());
 app.use("/api", userRouter);
 app.use("/api", postRouter);
-// app.use("/api", authRouter);
+app.use("/api", authRouter);
 
 app.listen(PORT, () => {
   console.clear();
