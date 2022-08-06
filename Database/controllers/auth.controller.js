@@ -93,7 +93,7 @@ class AuthController {
         "select * from token where refreshtoken=$1",
         [refreshToken]
       );
-      if (tokenData) {
+      if (tokenData.rows.length > 0) {
         const user = await db.query("select * from person where id=$1", [
           tokenData.rows[0].user_id,
         ]);
