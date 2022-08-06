@@ -28,7 +28,11 @@ class AuthController {
         nickname
       );
       await TokenService.saveToken(user.rows[0].id, refreshToken);
-      res.status(200).json({ msg: "success" });
+      res.cookie("refreshToken", refreshToken, {
+        maxAge: 2592000000,
+        httpOnly: true,
+      });
+      res.status(200).json({ msg: "success", accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
@@ -45,7 +49,10 @@ class AuthController {
       if (user.rows.length === 0) {
         return res.status(400).json({ msg: "Неверный никнейм/пароль" });
       }
-      const validPassword = bcrypt.compare(password, user.rows[0].passwordhash);
+      const validPassword = await bcrypt.compare(
+        password,
+        user.rows[0].passwordhash
+      );
       if (!validPassword) {
         return res.status(400).json({ msg: "Неверный никнейм/пароль" });
       }
@@ -53,7 +60,11 @@ class AuthController {
         user.rows[0].id,
         nickname
       );
-      res.json({ accessToken });
+      res.cookie("refreshToken", refreshToken, {
+        maxAge: 2592000000,
+        httpOnly: true,
+      });
+      res.json({ msg: "success", accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res

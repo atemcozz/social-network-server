@@ -1,25 +1,6 @@
 const db = require("../db");
 
 class UserController {
-  // async createUser(req, res) {
-  //   const { name, surname, nickname, passwordHash } = req.body;
-  //   const newPerson = await db.query(
-  //     `INSERT INTO person (name,surname,nickname,passwordHash) values ($1,$2,$3,$4) RETURNING *`,
-  //     [name, surname, nickname, passwordHash]
-  //   );
-  //   res.json(newPerson.rows[0]);
-  // }
-  // async createUser(userData) {
-  //   const { name, surname, nickname, passwordHash } = userData;
-  //   const newPerson = await db.query(
-  //     `INSERT INTO person (name,surname,nickname,passwordHash) values ($1,$2,$3,$4) RETURNING *`,
-  //     [name, surname, nickname, passwordHash],
-  //     (err) => {
-  //       if (err) return err;
-  //     }
-  //   );
-  //   return;
-  // }
   async getUsers(req, res) {
     const users = await db.query(`select * from person`);
     res.json(users.rows);
