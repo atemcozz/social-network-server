@@ -32,7 +32,7 @@ class AuthController {
         maxAge: 2592000000,
         httpOnly: true,
       });
-      res.status(200).json({ msg: "success", accessToken, refreshToken });
+      res.status(200).json({ user: user.rows[0], accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
@@ -65,7 +65,7 @@ class AuthController {
         maxAge: 2592000000,
         httpOnly: true,
       });
-      res.json({ msg: "success", accessToken, refreshToken });
+      res.json({ user: user.rows[0], accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
@@ -102,12 +102,18 @@ class AuthController {
         maxAge: 2592000000,
         httpOnly: true,
       });
-      return res.json({ msg: "success", ...newTokens });
+      return res.json({ user, ...newTokens });
     } catch (e) {
       console.log(e);
       res
         .status(400)
         .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
+    }
+  }
+  async auth(req, res) {
+    try {
+    } catch (e) {
+      console.log(e);
     }
   }
 }
