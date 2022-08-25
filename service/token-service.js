@@ -24,19 +24,19 @@ class TokenService {
       user_id,
     ]);
     if (tokenData.rows.length > 0) {
-      await db.query("update token set refreshtoken=$1 where user_id=$2", [
+      await db.query("update token set refresh_token=$1 where user_id=$2", [
         refreshToken,
         user_id,
       ]);
       return;
     }
-    await db.query("insert into token (user_id, refreshtoken) values ($1,$2)", [
-      user_id,
-      refreshToken,
-    ]);
+    await db.query(
+      "insert into token (user_id, refresh_token) values ($1,$2)",
+      [user_id, refreshToken]
+    );
   }
   async removeToken(refreshToken) {
-    await db.query("delete from token where refreshToken=$1", [refreshToken]);
+    await db.query("delete from token where refresh_token=$1", [refreshToken]);
     return;
   }
   validateAccessToken(token) {
