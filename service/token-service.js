@@ -19,20 +19,21 @@ class TokenService {
     );
     return { accessToken, refreshToken };
   }
-  async saveToken(user_id, refreshToken) {
-    const tokenData = await db.query("select * from token where user_id=$1", [
-      user_id,
-    ]);
+  async saveToken(user_id, oldToken, newToken) {
+    const tokenData = await db.query(
+      "select * from token where refresh_token=$1",
+      [oldToken]
+    );
     if (tokenData.rows.length > 0) {
-      await db.query("update token set refresh_token=$1 where user_id=$2", [
-        refreshToken,
-        user_id,
-      ]);
+      await db.query(
+        "update token set refresh_token=$1 where refresh_token=$2",
+        [newToken, oldToken]
+      );
       return;
     }
     await db.query(
       "insert into token (user_id, refresh_token) values ($1,$2)",
-      [user_id, refreshToken]
+      [user_id, newToken]
     );
   }
   async removeToken(refreshToken) {
