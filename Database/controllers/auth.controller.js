@@ -27,7 +27,7 @@ class AuthController {
         user.rows[0].id,
         nickname
       );
-      await TokenService.saveToken(user.rows[0].id, null, refreshToken);
+      await TokenService.saveToken(user.rows[0].id, refreshToken);
       res.cookie("refreshToken", refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,
@@ -60,11 +60,10 @@ class AuthController {
         user.rows[0].id,
         nickname
       );
-      await TokenService.saveToken(
-        user.rows[0].id,
-        req.cookies.refreshToken,
-        refreshToken
-      );
+      if (req.cookies.refreshToken) {
+        await TokenService.removeToken(req.cookies.refreshToken);
+      }
+      await TokenService.saveToken(user.rows[0].id, refreshToken);
       res.cookie("refreshToken", refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,
@@ -101,11 +100,8 @@ class AuthController {
         return res.status(400).json({ msg: "token not found" });
       }
       const newTokens = TokenService.generateTokens(user.id, user.nickname);
-      await TokenService.saveToken(
-        user.id,
-        refreshToken,
-        newTokens.refreshToken
-      );
+      await TokenService.removeToken(refreshToken);
+      await TokenService.saveToken(user.id, newTokens.refreshToken);
       res.cookie("refreshToken", newTokens.refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,

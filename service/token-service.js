@@ -19,18 +19,7 @@ class TokenService {
     );
     return { accessToken, refreshToken };
   }
-  async saveToken(user_id, oldToken, newToken) {
-    const tokenData = await db.query(
-      "select * from token where refresh_token=$1",
-      [oldToken]
-    );
-    if (tokenData.rows.length > 0) {
-      await db.query(
-        "update token set refresh_token=$1 where refresh_token=$2",
-        [newToken, oldToken]
-      );
-      return;
-    }
+  async saveToken(user_id, newToken) {
     await db.query(
       "insert into token (user_id, refresh_token) values ($1,$2)",
       [user_id, newToken]

@@ -10,9 +10,7 @@ create TABLE IF NOT EXISTS person(
 
 create TABLE IF NOT EXISTS post(
   id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
-  photoURLs VARCHAR(255) NOT NULL,
   user_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES person (id)
 );
@@ -43,4 +41,11 @@ create TABLE IF NOT EXISTS token(
   refresh_token TEXT NOT NULL,
   user_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES person (id)
+);
+create TABLE IF NOT EXISTS post_media(
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(255) NOT NULL, 
+  url VARCHAR(2048) NOT NULL, 
+  post_id INTEGER NOT NULL,
+  FOREIGN KEY (post_id) REFERENCES post (id)
 );
