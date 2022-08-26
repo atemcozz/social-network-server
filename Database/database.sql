@@ -4,7 +4,7 @@ create TABLE IF NOT EXISTS person(
   surname VARCHAR(255) NOT NULL,
   nickname VARCHAR(255) NOT NULL,
   passwordHash VARCHAR(255) NOT NULL,
-  avatarURL VARCHAR(255),
+  avatar_url VARCHAR(2048),
   UNIQUE (nickname)
 );
 
