@@ -2,13 +2,21 @@ const db = require("../db");
 
 class PostController {
   async createPost(req, res) {
-    const { title, description, category, imagesurls, user_id, geo, videourl } =
-      req.body;
-    const newPost = await db.query(
-      `INSERT INTO post (title,description, category, imagesurls, user_id, geo, videourl) values ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [title, description, category, imagesurls, user_id, geo, videourl]
-    );
-    res.json(newPost.rows[0]);
+    const { user_id, description, attachments } = req.body;
+    const newPost = (
+      await db.query(
+        `INSERT INTO post (description, user_id) values ($1,$2) RETURNING *`,
+        [description, user_id]
+      )
+    ).rows[0];
+
+    for (const at of attachments) {
+      await db.query(
+        "insert into post_media (type,url,post_id) values ($1,$2,$3)",
+        [at.type, at.url, newPost.id]
+      );
+    }
+    res.json(newPost);
   }
   async getPostsByUser(req, res) {
     const id = req.query.id;
@@ -29,10 +37,20 @@ class PostController {
         [user_id]
       )
     ).rows[0];
-    res.json({ ...post, user, attachments });
+    const likesCount = (
+      await db.query(`select count(*) from post_like where post_id=$1`, [
+        post.id,
+      ])
+    ).rows[0].count;
+    const commentsCount = (
+      await db.query(`select count(*) from comment where post_id=$1`, [post.id])
+    ).rows[0].count;
+    res.json({ ...post, user, likesCount, commentsCount, attachments });
   }
   async getPosts(req, res) {
-    const posts = (await db.query(`select * from post`)).rows;
+    const posts = (
+      await db.query(`select * from post order by created_at desc`)
+    ).rows;
 
     const postsData = await Promise.all(
       posts.map(async ({ user_id, ...post }) => {
@@ -52,10 +70,17 @@ class PostController {
             post.id,
           ])
         ).rows[0].count;
+        const commentsCount = (
+          await db.query(`select count(*) from comment where post_id=$1`, [
+            post.id,
+          ])
+        ).rows[0].count;
+
         return {
           ...post,
           user,
           likesCount,
+          commentsCount,
           attachments,
         };
       })
@@ -66,6 +91,40 @@ class PostController {
     const id = req.params.id;
     await db.query(`delete from post where id=$1`, [id]);
     res.status(200).end();
+  }
+  async likePost(req, res) {
+    const { user_id, post_id } = req.body;
+    const liked = (
+      await db.query(
+        "select * from post_like where user_id=$1 and post_id=$2",
+        [user_id, post_id]
+      )
+    ).rows[0];
+    if (liked) {
+      await db.query("delete from post_like where user_id=$1 and post_id=$2", [
+        user_id,
+        post_id,
+      ]);
+    } else {
+      await db.query(
+        "insert into post_like (user_id, post_id) values ($1,$2)",
+        [user_id, post_id]
+      );
+    }
+    res.status(200).end();
+  }
+  async getLikeStatus(req, res) {
+    const { user_id, post_id } = req.query;
+    const liked = (
+      await db.query(
+        "select * from post_like where user_id=$1 and post_id=$2",
+        [user_id, post_id]
+      )
+    ).rows[0];
+    if (liked) {
+      return res.status(200).json({ liked: true });
+    }
+    res.status(200).json({ liked: false });
   }
 }
 
