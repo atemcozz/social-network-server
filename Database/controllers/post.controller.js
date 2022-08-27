@@ -115,6 +115,9 @@ class PostController {
   }
   async getLikeStatus(req, res) {
     const { user_id, post_id } = req.query;
+    if (user_id === "undefined" || post_id === "undefined") {
+      return res.status(404).end();
+    }
     const liked = (
       await db.query(
         "select * from post_like where user_id=$1 and post_id=$2",
@@ -125,6 +128,33 @@ class PostController {
       return res.status(200).json({ liked: true });
     }
     res.status(200).json({ liked: false });
+  }
+
+  async test(req, res) {
+    const query = `select
+      p.id,
+      p.description,
+      p.created_at,
+      to_jsonb(u.*) - 'passwordhash' as user,
+      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') as attachments,
+      (
+        select
+          count(*)
+        from
+          post_like
+        where
+          post_id = p.id
+      ) as likes_count
+    from
+      post p
+      join person u on p.user_id = u.id
+      left join post_media pm on p.id = pm.post_id
+      left join post_like pl on p.id = pl.post_id
+    group by
+      p.id,
+      u.id;`;
+    const testres = (await db.query(query)).rows;
+    res.json(testres);
   }
 }
 

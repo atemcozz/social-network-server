@@ -34,7 +34,6 @@ class TokenService {
       const userData = jwt.verify(token, JWT_ACCESS_SECRET);
       return userData;
     } catch (e) {
-      console.log(e);
       return null;
     }
   }
