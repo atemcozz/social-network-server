@@ -83,22 +83,26 @@ class PostController {
     res.status(200).end();
   }
   async likePost(req, res) {
-    const { user_id, post_id } = req.body;
+    const { post_id } = req.body;
+    const user = req.user;
+    if (!user) {
+      res.status(401).end();
+    }
     const liked = (
       await db.query(
         "select * from post_like where user_id=$1 and post_id=$2",
-        [user_id, post_id]
+        [user.id, post_id]
       )
     ).rows[0];
     if (liked) {
       await db.query("delete from post_like where user_id=$1 and post_id=$2", [
-        user_id,
+        user.id,
         post_id,
       ]);
     } else {
       await db.query(
         "insert into post_like (user_id, post_id) values ($1,$2)",
-        [user_id, post_id]
+        [user.id, post_id]
       );
     }
     res.status(200).end();
