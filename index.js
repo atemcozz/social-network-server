@@ -18,7 +18,7 @@ app.use(cookieParser());
 app.use("/api", userRouter);
 app.use("/api", postRouter);
 app.use("/api", authRouter);
-
+app.use(express.static("public"));
 app.listen(PORT, () => {
   console.clear();
   console.log(`Server running at http://localhost:${PORT}`);
