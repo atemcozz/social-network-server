@@ -6,7 +6,7 @@ router.post("/post", postController.createPost);
 router.post("/like_post", authMiddleware, postController.likePost);
 router.get("/posts", postController.getPosts);
 router.get("/post/:id", postController.getOnePost);
-router.get("/posts/user", postController.getPostsByUser);
+router.get("/posts/user/:id", postController.getPostsByUser);
 router.delete("/post/:id", postController.deletePost);
 router.get("/test", postController.test);
 module.exports = router;

@@ -20,37 +20,74 @@ class PostController {
     res.json(newPost);
   }
   async getPostsByUser(req, res) {
-    const id = req.query.id;
-    const posts = await db.query(`select * from post where user_id = $1`, [id]);
-    res.json(posts.rows);
+    const id = req.params.id;
+    const user = tokenService.validateAccessToken(
+      req.headers.authorization?.split(" ")[1]
+    );
+    const posts = (
+      await db.query(
+        `SELECT p.id,p.description,p.created_at,
+      to_jsonb(u.*) - 'passwordhash' AS USER,
+      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
+      (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
+      FROM post p
+      JOIN person u ON p.user_id = u.id
+      LEFT JOIN post_media pm ON p.id = pm.post_id
+      WHERE p.user_id = $1
+      GROUP BY p.id, u.id
+      ORDER BY p.created_at DESC`,
+        [id]
+      )
+    ).rows;
+    if (user) {
+      for (const post of posts) {
+        post.userLike =
+          (
+            await db.query(
+              "select count(*) from post_like where user_id=$1 and post_id=$2",
+              [user.id, post.id]
+            )
+          ).rows[0].count > 0;
+      }
+    }
+    res.json(posts);
   }
   async getOnePost(req, res) {
     const id = req.params.id;
-    const { user_id, ...post } = (
-      await db.query(`select * from post where id=$1`, [id])
-    ).rows[0];
-    const attachments = (
-      await db.query(`select type, url from post_media where post_id=$1`, [id])
-    ).rows;
-    const user = (
+    const user = tokenService.validateAccessToken(
+      req.headers.authorization?.split(" ")[1]
+    );
+    const post = (
       await db.query(
-        `select id, name,surname,nickname,avatar_url from person where id=$1`,
-        [user_id]
+        `SELECT p.id,p.description,p.created_at,
+      to_jsonb(u.*) - 'passwordhash' AS USER,
+      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
+      (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
+      FROM post p
+      JOIN person u ON p.user_id = u.id
+      LEFT JOIN post_media pm ON p.id = pm.post_id
+      WHERE p.id=$1
+      GROUP BY p.id, u.id
+      ORDER BY p.created_at DESC`,
+        [id]
       )
     ).rows[0];
-    const likesCount = (
-      await db.query(`select count(*) from post_like where post_id=$1`, [
-        post.id,
-      ])
-    ).rows[0].count;
-    const commentsCount = (
-      await db.query(`select count(*) from comment where post_id=$1`, [post.id])
-    ).rows[0].count;
-    res.json({ ...post, user, likesCount, commentsCount, attachments });
+    if (user) {
+      post.userLike =
+        (
+          await db.query(
+            "select count(*) from post_like where user_id=$1 and post_id=$2",
+            [user.id, post.id]
+          )
+        ).rows[0].count > 0;
+    }
+    res.json(post);
   }
   async getPosts(req, res) {
     const user = tokenService.validateAccessToken(
-      req.headers.authorization.split(" ")[1]
+      req.headers.authorization?.split(" ")[1]
     );
     const posts = (
       await db.query(`SELECT p.id,p.description,p.created_at,
@@ -79,7 +116,20 @@ class PostController {
   }
   async deletePost(req, res) {
     const id = req.params.id;
-    await db.query(`delete from post where id=$1`, [id]);
+    await db.query(
+      `delete from post_media where post_id=$1`,
+      [id],
+      (err, res) => {
+        if (err) {
+          return res.status(400).end();
+        }
+      }
+    );
+    await db.query(`delete from post where id=$1`, [id], (err, res) => {
+      if (err) {
+        return res.status(400).end();
+      }
+    });
     res.status(200).end();
   }
   async likePost(req, res) {
