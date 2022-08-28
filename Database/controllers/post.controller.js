@@ -4,24 +4,27 @@ const db = require("../db");
 class PostController {
   async createPost(req, res) {
     try {
-      const { description, attachments } = req.body;
+      const files = req.files;
+      const description = req.body.description;
       const user_id = req.user.id;
-      // const newPost = (
-      //   await db.query(
-      //     `INSERT INTO post (description, user_id) values ($1,$2) RETURNING *`,
-      //     [description ? description : "", user_id]
-      //   )
-      // ).rows[0];
-      // if (attachments) {
-      //   for (const at of attachments) {
-      //     await db.query(
-      //       "insert into post_media (type,url,post_id) values ($1,$2,$3)",
-      //       [at.type, at.url, newPost.id]
-      //     );
-      //   }
-      // }
-      console.log(req.files);
-      res.json({});
+      const newPost = (
+        await db.query(
+          `INSERT INTO post (description, user_id) values ($1,$2) RETURNING *`,
+          [description ? description : "", user_id]
+        )
+      ).rows[0];
+      if (files) {
+        for (const at of files) {
+          const type = at.mimetype.split("/")[0].replace("image", "photo");
+
+          await db.query(
+            "insert into post_media (type,url,post_id) values ($1,$2,$3)",
+            [type, `http://localhost:4000/uploads/${at.filename}`, newPost.id]
+          );
+        }
+      }
+      // console.log(files, req.body.description);
+      res.end();
     } catch (e) {
       console.error(e);
       res.status(400).end();
