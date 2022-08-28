@@ -7,6 +7,13 @@ class PostController {
       const files = req.files;
       const description = req.body.description;
       const user_id = req.user.id;
+      if (
+        (!files || files?.length === 0) &&
+        (!description || description?.trim() === "")
+      ) {
+        return res.status(400).json({ msg: "Empty post" });
+      }
+
       const newPost = (
         await db.query(
           `INSERT INTO post (description, user_id) values ($1,$2) RETURNING *`,
@@ -23,8 +30,9 @@ class PostController {
           );
         }
       }
+
       // console.log(files, req.body.description);
-      res.end();
+      res.json({ post_id: newPost.id });
     } catch (e) {
       console.error(e);
       res.status(400).end();
@@ -64,14 +72,18 @@ class PostController {
     }
     res.json(posts);
   }
-  async getOnePost(req, res) {
-    const id = req.params.id;
-    const user = tokenService.validateAccessToken(
-      req.headers.authorization?.split(" ")[1]
-    );
-    const post = (
-      await db.query(
-        `SELECT p.id,p.description,p.created_at,
+  async getPostByID(req, res) {
+    try {
+      const id = req.params.id;
+      if (Number(id) !== parseInt(id)) {
+        return res.status(404).end();
+      }
+      const user = tokenService.validateAccessToken(
+        req.headers.authorization?.split(" ")[1]
+      );
+      const post = (
+        await db.query(
+          `SELECT p.id,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
@@ -82,21 +94,29 @@ class PostController {
       WHERE p.id=$1
       GROUP BY p.id, u.id
       ORDER BY p.created_at DESC`,
-        [id]
-      )
-    ).rows[0];
-    if (user) {
-      post.userLike =
-        (
-          await db.query(
-            "select count(*) from post_like where user_id=$1 and post_id=$2",
-            [user.id, post.id]
-          )
-        ).rows[0].count > 0;
+          [id]
+        )
+      ).rows[0];
+      if (!post) {
+        return res.status(404).end();
+      }
+      if (user) {
+        post.userLike =
+          (
+            await db.query(
+              "select count(*) from post_like where user_id=$1 and post_id=$2",
+              [user.id, post.id]
+            )
+          ).rows[0].count > 0;
+      }
+      res.status(200).json(post);
+    } catch (error) {
+      console.log(error);
+      res.status(500).end();
     }
-    res.json(post);
   }
   async getPosts(req, res) {
+    //console.log(req.hostname);
     const user = tokenService.validateAccessToken(
       req.headers.authorization?.split(" ")[1]
     );
