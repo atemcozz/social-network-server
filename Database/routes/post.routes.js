@@ -1,8 +1,15 @@
 const express = require("express");
 const router = express();
+
 const postController = require("../controllers/post.controller");
 const authMiddleware = require("../../middleware/authMiddleware");
-router.post("/post", postController.createPost);
+const { upload } = require("../../middleware/multer");
+router.post(
+  "/post",
+  authMiddleware,
+  upload.array("files[]"),
+  postController.createPost
+);
 router.post("/like_post", authMiddleware, postController.likePost);
 router.get("/posts", postController.getPosts);
 router.get("/post/:id", postController.getOnePost);

@@ -1,9 +1,12 @@
 const express = require("express");
+const multer = require("multer");
 const userRouter = require("./Database/routes/user.routes");
 const postRouter = require("./Database/routes/post.routes");
 const authRouter = require("./Database/routes/auth.routes");
 const cors = require("cors");
+
 const cookieParser = require("cookie-parser");
+
 const PORT = 4000;
 
 const app = express();

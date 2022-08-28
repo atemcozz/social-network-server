@@ -4,22 +4,24 @@ const db = require("../db");
 class PostController {
   async createPost(req, res) {
     try {
-      const { user_id, description, attachments } = req.body;
-      const newPost = (
-        await db.query(
-          `INSERT INTO post (description, user_id) values ($1,$2) RETURNING *`,
-          [description ? description : "", user_id]
-        )
-      ).rows[0];
-      if (attachments) {
-        for (const at of attachments) {
-          await db.query(
-            "insert into post_media (type,url,post_id) values ($1,$2,$3)",
-            [at.type, at.url, newPost.id]
-          );
-        }
-      }
-      res.json(newPost);
+      const { description, attachments } = req.body;
+      const user_id = req.user.id;
+      // const newPost = (
+      //   await db.query(
+      //     `INSERT INTO post (description, user_id) values ($1,$2) RETURNING *`,
+      //     [description ? description : "", user_id]
+      //   )
+      // ).rows[0];
+      // if (attachments) {
+      //   for (const at of attachments) {
+      //     await db.query(
+      //       "insert into post_media (type,url,post_id) values ($1,$2,$3)",
+      //       [at.type, at.url, newPost.id]
+      //     );
+      //   }
+      // }
+      console.log(req.files);
+      res.json({});
     } catch (e) {
       console.error(e);
       res.status(400).end();
