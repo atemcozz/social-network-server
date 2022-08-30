@@ -13,7 +13,7 @@ router.post(
 router.post("/like_post", authMiddleware, postController.likePost);
 router.get("/posts", postController.getPosts);
 router.get("/post/:id", postController.getPostByID);
-router.get("/posts/user/:id", postController.getPostsByUser);
+router.get("/posts/:id", postController.getPostsByUser);
 router.delete("/post/:id", postController.deletePost);
 router.get("/test", postController.test);
 module.exports = router;
