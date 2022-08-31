@@ -43,6 +43,9 @@ class PostController {
     const user = tokenService.validateAccessToken(
       req.headers.authorization?.split(" ")[1]
     );
+    if (Number(id) !== parseInt(id)) {
+      return res.status(404).end();
+    }
     const posts = (
       await db.query(
         `SELECT p.id,p.description,p.created_at,

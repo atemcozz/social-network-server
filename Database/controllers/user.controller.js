@@ -1,5 +1,6 @@
 const db = require("../db");
-
+const bcrypt = require("bcrypt");
+const tokenService = require("../../service/token-service");
 class UserController {
   async getUsers(req, res) {
     const users = await db.query(`select * from person`);
@@ -18,13 +19,56 @@ class UserController {
     res.json(user.rows[0]);
   }
   async updateUser(req, res) {
-    const { name, surname, nickname, passwordHash } = req.body;
-    const id = req.params.id;
-    const user = await db.query(
-      `update person set name = $1,surname = $2, nickname = $3, passwordHash = $4 where id=$5 returning *`,
-      [name, surname, nickname, passwordHash, id]
-    );
-    res.json(user.rows[0]);
+    try {
+      const { name, surname, nickname, password } = req.body;
+      const avatar = req.file;
+      const id = req.params.id;
+      if (Number(id) !== parseInt(id)) {
+        return res.status(404).end();
+      }
+      if (name) {
+        console.log(name);
+        await db.query(`update person set name = $1 where id=$2`, [name, id]);
+      }
+      if (surname) {
+        await db.query(`update person set surname = $1 where id=$2`, [
+          surname,
+          id,
+        ]);
+      }
+      if (nickname) {
+        const nicknameExists = (
+          await db.query(`select * from person where nickname=$1`, [id])
+        ).rows[0];
+        if (nicknameExists) {
+          return res.status(400).json({ msg: "Никнейм уже занят" });
+        }
+        await db.query(`update person set nickname = $1 where id=$2`, [
+          nickname,
+          id,
+        ]);
+      }
+      if (password) {
+        await tokenService.removeAllTokens(id);
+        const passwordHash = await bcrypt.hash(password, 10);
+        await db.query(`update person set passwordhash = $1 where id=$2`, [
+          passwordHash,
+          id,
+        ]);
+      }
+      if (avatar) {
+        await db.query("update person set avatar_url = $1 where id = $2", [
+          `http://localhost:4000/uploads/${avatar.filename}`,
+          id,
+        ]);
+      }
+      const user = (await db.query(`select * from person where id=$1`, [id]))
+        .rows[0];
+      res.json(user);
+    } catch (e) {
+      console.error(e);
+      res.status(400).end();
+    }
   }
   async deleteUser(req, res) {
     const id = req.params.id;

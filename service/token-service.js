@@ -29,6 +29,10 @@ class TokenService {
     await db.query("delete from token where refresh_token=$1", [refreshToken]);
     return;
   }
+  async removeAllTokens(user_id) {
+    await db.query("delete from token where user_id=$1", [user_id]);
+    return;
+  }
   validateAccessToken(token) {
     try {
       const userData = jwt.verify(token, JWT_ACCESS_SECRET);
