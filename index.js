@@ -12,7 +12,14 @@ app.use(express.json());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://social-network-client-red.vercel.app",
+      "https://social-network-client-red.vercel.app",
+      "https://social-network-client-atemcozz.vercel.app",
+      "https://social-network-client-3l8f5xhl4-atemcozz.vercel.app",
+      "https://social-network-client-git-master-atemcozz.vercel.app",
+    ],
   })
 );
 app.use(cookieParser());
