@@ -26,7 +26,11 @@ class PostController {
 
           await db.query(
             "insert into post_media (type,url,post_id) values ($1,$2,$3)",
-            [type, `http://localhost:4000/uploads/${at.filename}`, newPost.id]
+            [
+              type,
+              `https://sn-atemcozz.herokuapp.com/uploads/${at.filename}`,
+              newPost.id,
+            ]
           );
         }
       }
