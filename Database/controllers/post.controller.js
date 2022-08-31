@@ -147,16 +147,12 @@ class PostController {
   }
   async deletePost(req, res) {
     const id = req.params.id;
-    await db.query(
-      `delete from post_media where post_id=$1`,
-      [id],
-      (err, res) => {
-        if (err) {
-          return res.status(400).end();
-        }
+    await db.query(`delete from post_media where post_id=$1`, [id], (err) => {
+      if (err) {
+        return res.status(400).end();
       }
-    );
-    await db.query(`delete from post where id=$1`, [id], (err, res) => {
+    });
+    await db.query(`delete from post where id=$1`, [id], (err) => {
       if (err) {
         return res.status(400).end();
       }

@@ -7,6 +7,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
+
 app.use(express.json());
 app.use(
   cors({
@@ -19,6 +20,7 @@ app.use("/api", userRouter);
 app.use("/api", postRouter);
 app.use("/api", authRouter);
 app.use(express.static("public"));
+
 app.listen(process.env.PORT || 4000, () => {
   console.clear();
   console.log(`Server running at http://localhost:${process.env.PORT || 4000}`);

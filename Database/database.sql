@@ -12,29 +12,29 @@ create TABLE IF NOT EXISTS post(
   id SERIAL PRIMARY KEY,
   description TEXT NOT NULL,
   user_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES person (id)
+  FOREIGN KEY (user_id) REFERENCES person (id) 
 );
 create TABLE IF NOT EXISTS comment(
   id SERIAL PRIMARY KEY,
   body TEXT NOT NULL,
   user_id INTEGER NOT NULL,
   post_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES person (id),
-  FOREIGN KEY (post_id) REFERENCES post (id),
+  FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
 );
 create TABLE IF NOT EXISTS post_like(
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL,
   post_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES person (id),
-  FOREIGN KEY (post_id) REFERENCES post (id)
+  FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
 create TABLE IF NOT EXISTS comment_like(
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL,
   comment_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES person (id),
-  FOREIGN KEY (comment_id) REFERENCES comment (id)
+  FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
+  FOREIGN KEY (comment_id) REFERENCES comment (id) ON DELETE CASCADE
 );
 create TABLE IF NOT EXISTS token(
   id SERIAL PRIMARY KEY,
@@ -47,5 +47,5 @@ create TABLE IF NOT EXISTS post_media(
   type VARCHAR(255) NOT NULL, 
   url VARCHAR(2048) NOT NULL, 
   post_id INTEGER NOT NULL,
-  FOREIGN KEY (post_id) REFERENCES post (id)
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
 );
