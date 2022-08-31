@@ -12,7 +12,8 @@ create TABLE IF NOT EXISTS post(
   id SERIAL PRIMARY KEY,
   description TEXT NOT NULL,
   user_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES person (id) 
+  nsfw BOOLEAN NOT NULL DEFAULT false,
+  FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE
 );
 create TABLE IF NOT EXISTS comment(
   id SERIAL PRIMARY KEY,
@@ -20,7 +21,7 @@ create TABLE IF NOT EXISTS comment(
   user_id INTEGER NOT NULL,
   post_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
-  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
 create TABLE IF NOT EXISTS post_like(
   id SERIAL PRIMARY KEY,
@@ -40,12 +41,15 @@ create TABLE IF NOT EXISTS token(
   id SERIAL PRIMARY KEY,
   refresh_token TEXT NOT NULL,
   user_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES person (id)
+  FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE
 );
 create TABLE IF NOT EXISTS post_media(
   id SERIAL PRIMARY KEY,
   type VARCHAR(255) NOT NULL, 
   url VARCHAR(2048) NOT NULL, 
   post_id INTEGER NOT NULL,
-  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
+
+
+
