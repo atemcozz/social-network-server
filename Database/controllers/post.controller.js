@@ -22,7 +22,7 @@ class PostController {
       ).rows[0];
       if (files) {
         for (const at of files) {
-          const { path } = at;
+          const path = `https://sn-atemcozz.herokuapp.com/uploads/${at.filename}`;
           const type = at.mimetype.split("/")[0].replace("image", "photo");
           const data = await cloudinary.uploader.upload(
             path,
