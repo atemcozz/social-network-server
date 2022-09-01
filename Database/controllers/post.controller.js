@@ -13,7 +13,6 @@ class PostController {
       ) {
         return res.status(400).json({ msg: "Empty post" });
       }
-
       const newPost = (
         await db.query(
           `INSERT INTO post (description, user_id, nsfw) values ($1,$2, $3) RETURNING *`,
@@ -22,32 +21,13 @@ class PostController {
       ).rows[0];
       if (files) {
         for (const at of files) {
-          const path = `https://sn-atemcozz.herokuapp.com/uploads/${at.filename}`;
           const type = at.mimetype.split("/")[0].replace("image", "photo");
-          const data = await cloudinary.uploader.upload(
-            path,
-            {
-              public_id: Date.now() + "-" + Math.round(Math.random() * 1e9),
-              resource_type: "auto",
-              folder: "social-network",
-            },
-            function (err, result) {
-              if (err) {
-                console.error(err);
-              }
-            }
-          );
-          if (!data) {
-            return res.status(500).end();
-          }
-
           await db.query(
             "insert into post_media (type,url,post_id) values ($1,$2,$3)",
-            [type, data.secure_url, newPost.id]
+            [type, at.path, newPost.id]
           );
         }
       }
-
       // console.log(files, req.body.description);
       res.json({ post_id: newPost.id });
     } catch (e) {
