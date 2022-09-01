@@ -58,7 +58,7 @@ class UserController {
       }
       if (avatar) {
         await db.query("update person set avatar_url = $1 where id = $2", [
-          `https://sn-atemcozz.herokuapp.com/uploads/${avatar.filename}`,
+          avatar.path,
           id,
         ]);
       }
