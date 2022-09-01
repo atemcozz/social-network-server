@@ -1,6 +1,6 @@
 const tokenService = require("../../service/token-service");
 const db = require("../db");
-
+const cloudinary = require("cloudinary").v2;
 class PostController {
   async createPost(req, res) {
     try {
@@ -22,15 +22,28 @@ class PostController {
       ).rows[0];
       if (files) {
         for (const at of files) {
+          const { path } = at;
           const type = at.mimetype.split("/")[0].replace("image", "photo");
+          const data = await cloudinary.uploader.upload(
+            path,
+            {
+              public_id: Date.now() + "-" + Math.round(Math.random() * 1e9),
+              resource_type: "auto",
+              folder: "social-network",
+            },
+            function (err, result) {
+              if (err) {
+                console.error(err);
+              }
+            }
+          );
+          if (!data) {
+            return res.status(500).end();
+          }
 
           await db.query(
             "insert into post_media (type,url,post_id) values ($1,$2,$3)",
-            [
-              type,
-              `https://sn-atemcozz.herokuapp.com/uploads/${at.filename}`,
-              newPost.id,
-            ]
+            [type, data.secure_url, newPost.id]
           );
         }
       }
