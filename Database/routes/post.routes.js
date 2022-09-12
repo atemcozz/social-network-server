@@ -19,6 +19,8 @@ router.delete(
 );
 router.get("/post/comments/:id", postController.getComments);
 router.get("/posts", postController.getPosts);
+router.get("/posts/new", postController.getPosts);
+router.get("/posts/popular", postController.getPopularPosts);
 router.get("/post/:id", postController.getPostByID);
 router.get("/posts/:id", postController.getPostsByUser);
 router.delete("/post/:id", postController.deletePost);

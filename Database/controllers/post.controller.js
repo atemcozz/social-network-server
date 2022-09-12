@@ -155,6 +155,41 @@ class PostController {
     }
     //console.log(req.hostname);
   }
+  async getPopularPosts(req, res) {
+    try {
+      const user = tokenService.validateAccessToken(
+        req.headers.authorization?.split(" ")[1]
+      );
+      const posts = (
+        await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
+      to_jsonb(u.*) - 'passwordhash' AS USER,
+      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
+      (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
+      FROM post p
+      JOIN person u ON p.user_id = u.id
+      LEFT JOIN post_media pm ON p.id = pm.post_id
+      GROUP BY p.id, u.id
+      ORDER BY likes_count DESC`)
+      ).rows;
+      if (user) {
+        for (const post of posts) {
+          post.userLike =
+            (
+              await db.query(
+                "select count(*) from post_like where user_id=$1 and post_id=$2",
+                [user.id, post.id]
+              )
+            ).rows[0].count > 0;
+        }
+      }
+      res.json(posts);
+    } catch (e) {
+      console.error(e);
+      res.status(400).end();
+    }
+    //console.log(req.hostname);
+  }
   async deletePost(req, res) {
     try {
       const { id } = req.params;
