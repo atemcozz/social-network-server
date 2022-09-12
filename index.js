@@ -24,6 +24,7 @@ app.use(
       "https://social-network-client-atemcozz.vercel.app",
       "https://social-network-client-3l8f5xhl4-atemcozz.vercel.app",
       "https://social-network-client-git-master-atemcozz.vercel.app",
+      "https://falco.vercel.app",
     ],
   })
 );

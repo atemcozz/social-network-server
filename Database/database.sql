@@ -13,6 +13,7 @@ create TABLE IF NOT EXISTS post(
   description TEXT NOT NULL,
   user_id INTEGER NOT NULL,
   nsfw BOOLEAN NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE
 );
 create TABLE IF NOT EXISTS comment(
@@ -20,6 +21,7 @@ create TABLE IF NOT EXISTS comment(
   body TEXT NOT NULL,
   user_id INTEGER NOT NULL,
   post_id INTEGER NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
