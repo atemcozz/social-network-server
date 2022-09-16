@@ -5,8 +5,9 @@ class PostController {
   async createPost(req, res) {
     try {
       const files = req.files;
-      const { description, nsfw } = req.body;
+      const { description, nsfw, tags } = req.body;
       const user_id = req.user.id;
+
       if (
         (!files || files?.length === 0) &&
         (!description || description?.trim() === "")
@@ -26,6 +27,16 @@ class PostController {
             "insert into post_media (type,url,post_id) values ($1,$2,$3)",
             [type, at.path, newPost.id]
           );
+        }
+      }
+      if (tags) {
+        for (const tag of tags) {
+          if (tag.trim().length > 0) {
+            await db.query(
+              "insert into post_tag (post_id, tag) values ($1,$2)",
+              [newPost.id, tag]
+            );
+          }
         }
       }
       // console.log(files, req.body.description);
@@ -49,11 +60,13 @@ class PostController {
           `SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
       JOIN person u ON p.user_id = u.id
       LEFT JOIN post_media pm ON p.id = pm.post_id
+      LEFT JOIN post_tag t on p.id = t.post_id
       WHERE p.user_id = $1
       GROUP BY p.id, u.id
       ORDER BY p.created_at DESC`,
@@ -91,10 +104,12 @@ class PostController {
           `SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
       JOIN person u ON p.user_id = u.id
+      LEFT JOIN post_tag t on p.id = t.post_id
       LEFT JOIN post_media pm ON p.id = pm.post_id
       WHERE p.id=$1
       GROUP BY p.id, u.id
@@ -129,14 +144,19 @@ class PostController {
         await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
       JOIN person u ON p.user_id = u.id
       LEFT JOIN post_media pm ON p.id = pm.post_id
+      LEFT JOIN post_tag t on p.id = t.post_id
       GROUP BY p.id, u.id
       ORDER BY p.created_at DESC`)
       ).rows;
+      // posts.forEach((post) => {
+      //   post.tags = ["Природа", "Фотография"];
+      // });
       if (user) {
         for (const post of posts) {
           post.userLike =
@@ -164,11 +184,13 @@ class PostController {
         await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
       JOIN person u ON p.user_id = u.id
       LEFT JOIN post_media pm ON p.id = pm.post_id
+      LEFT JOIN post_tag t on p.id = t.post_id
       GROUP BY p.id, u.id
       ORDER BY likes_count DESC`)
       ).rows;

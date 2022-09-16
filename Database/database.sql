@@ -52,6 +52,11 @@ create TABLE IF NOT EXISTS post_media(
   post_id INTEGER NOT NULL,
   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
-
+create table if not exists post_tag(
+  id SERIAL PRIMARY KEY,
+  post_id INTEGER NOT NULL,
+  tag VARCHAR(255) NOT NULL,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
+);
 
 
