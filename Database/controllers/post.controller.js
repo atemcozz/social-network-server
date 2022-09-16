@@ -59,8 +59,8 @@ class PostController {
         await db.query(
           `SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
-      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      array_agg(t.tag) AS tags,
+      array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(distinct t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
@@ -103,8 +103,8 @@ class PostController {
         await db.query(
           `SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
-      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      array_agg(t.tag) AS tags,
+      array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(distinct t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
@@ -143,8 +143,8 @@ class PostController {
       const posts = (
         await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
-      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      array_agg(t.tag) AS tags,
+      array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(distinct t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
@@ -183,8 +183,8 @@ class PostController {
       const posts = (
         await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
       to_jsonb(u.*) - 'passwordhash' AS USER,
-      array_agg(to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      array_agg(t.tag) AS tags,
+      array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
+      array_agg(distinct t.tag) AS tags,
       (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
       (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
       FROM post p
