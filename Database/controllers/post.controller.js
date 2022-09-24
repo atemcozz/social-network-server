@@ -8,11 +8,8 @@ class PostController {
       const { description, nsfw, tags } = req.body;
       const user_id = req.user.id;
 
-      if (
-        (!files || files?.length === 0) &&
-        (!description || description?.trim() === "")
-      ) {
-        return res.status(400).json({ msg: "Empty post" });
+      if (files.length === 0) {
+        return res.status(400).json({ msg: "Необходимо минимум 1 вложение" });
       }
       const newPost = (
         await db.query(
