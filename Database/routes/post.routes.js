@@ -23,5 +23,5 @@ router.get("/posts/new", postController.getPosts);
 router.get("/posts/popular", postController.getPopularPosts);
 router.get("/post/:id", postController.getPostByID);
 router.get("/posts/:id", postController.getPostsByUser);
-router.delete("/post/:id", postController.deletePost);
+router.delete("/post/:id", authMiddleware, postController.deletePost);
 module.exports = router;
