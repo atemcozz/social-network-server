@@ -5,7 +5,7 @@ class PostController {
   async createPost(req, res) {
     try {
       const files = req.files;
-      const { title, description, tags } = req.body;
+      const { title, description, tags, lat, lng } = req.body;
       const user_id = req.user.id;
 
       if (title?.trim().length === 0) {
@@ -54,6 +54,9 @@ class PostController {
           }
         }
       }
+      if (lat && lng) {
+        await knex("post_geo").insert({ post_id: newPost.id, lat, lng });
+      }
       // console.log(files, req.body.description);
       res.json({ post_id: newPost.id });
     } catch (e) {
@@ -76,6 +79,7 @@ class PostController {
         .leftJoin("comment as c", "p.id", "c.post_id")
         .leftJoin("post_like as pl", "p.id", "pl.post_id")
         .leftJoin("post_tag as t", "p.id", "t.post_id")
+        .leftJoin("post_geo as g", "p.id", "g.post_id")
         .select(
           "p.id",
           "p.title",
@@ -85,12 +89,13 @@ class PostController {
           knex.raw(
             "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
           ),
-          knex.raw("array_agg(distinct t.tag) AS tags")
+          knex.raw("array_agg(distinct t.tag) AS tags"),
+          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
         .count("pl as likes_count")
         .count("c as comments_count")
         .where({ "p.user_id": id })
-        .groupBy("p.id", "u.id")
+        .groupBy("p.id", "u.id", "g.id")
         .orderBy("likes_count", "desc");
       // const posts = (
       //   await db.query(
@@ -146,6 +151,7 @@ class PostController {
         .leftJoin("comment as c", "p.id", "c.post_id")
         .leftJoin("post_like as pl", "p.id", "pl.post_id")
         .leftJoin("post_tag as t", "p.id", "t.post_id")
+        .leftJoin("post_geo as g", "p.id", "g.post_id")
         .first(
           "p.id",
           "p.title",
@@ -155,12 +161,13 @@ class PostController {
           knex.raw(
             "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
           ),
-          knex.raw("array_agg(distinct t.tag) AS tags")
+          knex.raw("array_agg(distinct t.tag) AS tags"),
+          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
         .count("pl as likes_count")
         .count("c as comments_count")
         .where({ "p.id": id })
-        .groupBy("p.id", "u.id")
+        .groupBy("p.id", "u.id", "g.id")
         .orderBy("likes_count", "desc");
       // const post = (
       //   await db.query(
@@ -209,6 +216,7 @@ class PostController {
         .leftJoin("comment as c", "p.id", "c.post_id")
         .leftJoin("post_like as pl", "p.id", "pl.post_id")
         .leftJoin("post_tag as t", "p.id", "t.post_id")
+        .leftJoin("post_geo as g", "p.id", "g.post_id")
         .select(
           "p.id",
           "p.title",
@@ -218,11 +226,12 @@ class PostController {
           knex.raw(
             "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
           ),
-          knex.raw("array_agg(distinct t.tag) AS tags")
+          knex.raw("array_agg(distinct t.tag) AS tags"),
+          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
         .count("pl as likes_count")
         .count("c as comments_count")
-        .groupBy("p.id", "u.id")
+        .groupBy("p.id", "u.id", "g.id")
         .orderBy("p.created_at", "desc");
       // const posts = (
       //   await db.query(`SELECT p.id,p.title,p.description,p.created_at,
@@ -275,6 +284,7 @@ class PostController {
         .leftJoin("comment as c", "p.id", "c.post_id")
         .leftJoin("post_like as pl", "p.id", "pl.post_id")
         .leftJoin("post_tag as t", "p.id", "t.post_id")
+        .leftJoin("post_geo as g", "p.id", "g.post_id")
         .select(
           "p.id",
           "p.title",
@@ -284,11 +294,12 @@ class PostController {
           knex.raw(
             "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
           ),
-          knex.raw("array_agg(distinct t.tag) AS tags")
+          knex.raw("array_agg(distinct t.tag) AS tags"),
+          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
         .count("pl as likes_count")
         .count("c as comments_count")
-        .groupBy("p.id", "u.id")
+        .groupBy("p.id", "u.id", "g.id")
         .orderBy("likes_count", "desc");
       // const posts = (
       //   await db.query(`SELECT p.id,p.title,p.description,p.created_at,

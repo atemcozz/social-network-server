@@ -58,5 +58,11 @@ create table if not exists post_tag(
   tag VARCHAR(255) NOT NULL,
   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
-
+create table if not exists post_geo(
+  id SERIAL PRIMARY KEY,
+  post_id INTEGER NOT NULL,
+  lat double precision not null,
+  lng double precision not null,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
+);
 
