@@ -10,9 +10,9 @@ create TABLE IF NOT EXISTS person(
 
 create TABLE IF NOT EXISTS post(
   id SERIAL PRIMARY KEY,
-  description TEXT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
   user_id INTEGER NOT NULL,
-  nsfw BOOLEAN NOT NULL DEFAULT false,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE
 );

@@ -5,7 +5,7 @@ class PostController {
   async createPost(req, res) {
     try {
       const files = req.files;
-      const { description, nsfw, tags } = req.body;
+      const { description, tags } = req.body;
       const user_id = req.user.id;
 
       if (files.length === 0) {
@@ -13,8 +13,8 @@ class PostController {
       }
       const newPost = (
         await db.query(
-          `INSERT INTO post (description, user_id, nsfw) values ($1,$2, $3) RETURNING *`,
-          [description ? description : "", user_id, nsfw]
+          `INSERT INTO post (description, user_id) values ($1,$2, $3) RETURNING *`,
+          [description ? description : "", user_id]
         )
       ).rows[0];
       if (files) {
@@ -54,7 +54,7 @@ class PostController {
       }
       const posts = (
         await db.query(
-          `SELECT p.id,p.description,p.created_at, p.nsfw,
+          `SELECT p.id,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       array_agg(distinct t.tag) AS tags,
@@ -138,7 +138,7 @@ class PostController {
         req.headers.authorization?.split(" ")[1]
       );
       const posts = (
-        await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
+        await db.query(`SELECT p.id,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       array_agg(distinct t.tag) AS tags,
