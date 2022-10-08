@@ -5,16 +5,19 @@ class PostController {
   async createPost(req, res) {
     try {
       const files = req.files;
-      const { description, tags } = req.body;
+      const { title, description, tags } = req.body;
       const user_id = req.user.id;
 
+      if (title?.trim().length === 0) {
+        return res.status(400).json({ msg: "Необходимо название" });
+      }
       if (files.length === 0) {
         return res.status(400).json({ msg: "Необходимо минимум 1 вложение" });
       }
       const newPost = (
         await db.query(
-          `INSERT INTO post (description, user_id) values ($1,$2, $3) RETURNING *`,
-          [description ? description : "", user_id]
+          `INSERT INTO post (user_id, title, description) values ($1,$2, $3) RETURNING *`,
+          [user_id, title.trim(), description.trim()]
         )
       ).rows[0];
       if (files) {
@@ -54,7 +57,7 @@ class PostController {
       }
       const posts = (
         await db.query(
-          `SELECT p.id,p.description,p.created_at,
+          `SELECT p.id,p.title,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       array_agg(distinct t.tag) AS tags,
@@ -98,7 +101,7 @@ class PostController {
       );
       const post = (
         await db.query(
-          `SELECT p.id,p.description,p.created_at, p.nsfw,
+          `SELECT p.id,p.title,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       array_agg(distinct t.tag) AS tags,
@@ -138,7 +141,7 @@ class PostController {
         req.headers.authorization?.split(" ")[1]
       );
       const posts = (
-        await db.query(`SELECT p.id,p.description,p.created_at,
+        await db.query(`SELECT p.id,p.title,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       array_agg(distinct t.tag) AS tags,
@@ -178,7 +181,7 @@ class PostController {
         req.headers.authorization?.split(" ")[1]
       );
       const posts = (
-        await db.query(`SELECT p.id,p.description,p.created_at, p.nsfw,
+        await db.query(`SELECT p.id,p.title,p.description,p.created_at,
       to_jsonb(u.*) - 'passwordhash' AS USER,
       array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
       array_agg(distinct t.tag) AS tags,
