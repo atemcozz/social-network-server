@@ -92,8 +92,8 @@ class PostController {
           knex.raw("array_agg(distinct t.tag) AS tags"),
           knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
-        .count("pl.id as likes_count")
-        .count("c.id as comments_count")
+        .count({ likes_count: knex.raw("distinct pl") })
+        .count({ comments_count: knex.raw("distinct c") })
         .where({ "p.user_id": id })
         .groupBy("p.id", "u.id", "g.id")
         .orderBy("p.created_at", "desc");
@@ -164,8 +164,8 @@ class PostController {
           knex.raw("array_agg(distinct t.tag) AS tags"),
           knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
-        .count("pl as likes_count")
-        .count("c as comments_count")
+        .countDistinct("pl as likes_count")
+        .countDistinct("c as comments_count")
         .where({ "p.id": id })
         .groupBy("p.id", "u.id", "g.id")
         .orderBy("likes_count", "desc");
@@ -229,8 +229,8 @@ class PostController {
           knex.raw("array_agg(distinct t.tag) AS tags"),
           knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
-        .count("pl.id as likes_count")
-        .count("c.id as comments_count")
+        .countDistinct("pl as likes_count")
+        .countDistinct("c as comments_count")
         .groupBy("p.id", "u.id", "g.id")
         .orderBy("p.created_at", "desc");
       // const posts = (
@@ -297,8 +297,8 @@ class PostController {
           knex.raw("array_agg(distinct t.tag) AS tags"),
           knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
         )
-        .count("pl.id as likes_count")
-        .count("c.id as comments_count")
+        .countDistinct("pl as likes_count")
+        .countDistinct("c as comments_count")
         .groupBy("p.id", "u.id", "g.id")
         .orderBy("likes_count", "desc");
       // const posts = (
