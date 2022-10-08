@@ -1,4 +1,4 @@
-const db = require("../db");
+const knex = require("../db");
 const UserController = require("./user.controller");
 const bcrypt = require("bcrypt");
 const TokenService = require("../../service/token-service");
@@ -11,28 +11,39 @@ class AuthController {
         return res.status(400).json(errors.array().at(0));
       }
       const { name, surname, nickname, password } = req.body;
-      const candidate = await db.query(
-        `select * from person where nickname = $1`,
-        [nickname]
-      );
-      if (candidate.rows.length > 0) {
+      const candidate = await knex("person").where({ nickname }).first();
+      // const candidate = await db.query(
+      //   `select * from person where nickname = $1`,
+      //   [nickname]
+      // );
+      if (candidate) {
         return res.status(400).json({ msg: "Данный никнейм уже занят" });
       }
       const passwordHash = await bcrypt.hash(password, 10);
-      const user = await db.query(
-        `INSERT INTO person (name,surname,nickname,passwordHash) values ($1,$2,$3,$4) RETURNING *`,
-        [name, surname, nickname, passwordHash]
-      );
+      const user = (
+        await knex("person")
+          .insert({
+            name,
+            surname,
+            nickname,
+            passwordhash: passwordHash,
+          })
+          .returning("*")
+      )[0];
+      // const user = await db.query(
+      //   `INSERT INTO person (name,surname,nickname,passwordHash) values ($1,$2,$3,$4) RETURNING *`,
+      //   [name, surname, nickname, passwordHash]
+      // );
       const { accessToken, refreshToken } = TokenService.generateTokens(
-        user.rows[0].id,
+        user.id,
         nickname
       );
-      await TokenService.saveToken(user.rows[0].id, refreshToken);
+      await TokenService.saveToken(user.id, refreshToken);
       res.cookie("refreshToken", refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,
       });
-      res.status(200).json({ user: user.rows[0], accessToken, refreshToken });
+      res.status(200).json({ user, accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
@@ -43,32 +54,30 @@ class AuthController {
   async login(req, res) {
     try {
       const { nickname, password } = req.body;
-      const user = await db.query(`select * from person where nickname = $1`, [
-        nickname,
-      ]);
-      if (user.rows.length === 0) {
+      const user = await knex("person").where({ nickname }).first();
+      // const user = await db.query(`select * from person where nickname = $1`, [
+      //   nickname,
+      // ]);
+      if (!user) {
         return res.status(400).json({ msg: "Неверный никнейм/пароль" });
       }
-      const validPassword = await bcrypt.compare(
-        password,
-        user.rows[0].passwordhash
-      );
+      const validPassword = await bcrypt.compare(password, user.passwordhash);
       if (!validPassword) {
         return res.status(400).json({ msg: "Неверный никнейм/пароль" });
       }
       const { accessToken, refreshToken } = TokenService.generateTokens(
-        user.rows[0].id,
+        user.id,
         nickname
       );
       if (req.cookies.refreshToken) {
         await TokenService.removeToken(req.cookies.refreshToken);
       }
-      await TokenService.saveToken(user.rows[0].id, refreshToken);
+      await TokenService.saveToken(user.id, refreshToken);
       res.cookie("refreshToken", refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,
       });
-      res.json({ user: user.rows[0], accessToken, refreshToken });
+      res.json({ user, accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
@@ -112,12 +121,6 @@ class AuthController {
       res
         .status(400)
         .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
-    }
-  }
-  async auth(req, res) {
-    try {
-    } catch (e) {
-      console.log(e);
     }
   }
 }

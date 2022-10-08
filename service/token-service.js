@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET } = require("./constants");
-const db = require("../Database/db");
+const knex = require("../Database/db");
 class TokenService {
   generateTokens(id, nickname) {
     const accessToken = jwt.sign(
@@ -20,17 +20,20 @@ class TokenService {
     return { accessToken, refreshToken };
   }
   async saveToken(user_id, newToken) {
-    await db.query(
-      "insert into token (user_id, refresh_token) values ($1,$2)",
-      [user_id, newToken]
-    );
+    await knex("token").insert({ user_id, refresh_token: newToken });
+    // await db.query(
+    //   "insert into token (user_id, refresh_token) values ($1,$2)",
+    //   [user_id, newToken]
+    // );
   }
   async removeToken(refreshToken) {
-    await db.query("delete from token where refresh_token=$1", [refreshToken]);
+    // await db.query("delete from token where refresh_token=$1", [refreshToken]);
+    await knex("token").del().where({ refresh_token: refreshToken });
     return;
   }
   async removeAllTokens(user_id) {
-    await db.query("delete from token where user_id=$1", [user_id]);
+    // await db.query("delete from token where user_id=$1", [user_id]);
+    await knex("token").del().where({ user_id });
     return;
   }
   validateAccessToken(token) {
