@@ -269,7 +269,7 @@ class PostController {
       res.json(posts);
     } catch (e) {
       console.error(e);
-      res.status(400).end();
+      res.status(400).json({ e });
     }
     //console.log(req.hostname);
   }
