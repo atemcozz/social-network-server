@@ -114,6 +114,7 @@ class AuthController {
       res.cookie("refreshToken", newTokens.refreshToken, {
         maxAge: 2592000000,
         httpOnly: true,
+        sameSite: true,
       });
       return res.json({ user, ...newTokens });
     } catch (e) {

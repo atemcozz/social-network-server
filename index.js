@@ -28,6 +28,7 @@ app.use(
     ],
   })
 );
+
 app.use(cookieParser());
 app.use("/api", userRouter);
 app.use("/api", postRouter);
