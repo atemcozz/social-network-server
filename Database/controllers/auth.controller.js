@@ -39,17 +39,17 @@ class AuthController {
         nickname
       );
       await TokenService.saveToken(user.id, refreshToken);
-      res.cookie("refreshToken", refreshToken, {
-        maxAge: 2592000000,
-        httpOnly: true,
-        sameSite: "None",
-        secure: true,
-      });
+      // res.cookie("refreshToken", refreshToken, {
+      //   maxAge: 2592000000,
+      //   httpOnly: true,
+      //   sameSite: "None",
+      //   secure: true,
+      // });
       res.status(200).json({ user, accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
-        .status(400)
+        .status(500)
         .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
     }
   }
@@ -71,40 +71,40 @@ class AuthController {
         user.id,
         nickname
       );
-      if (req.cookies.refreshToken) {
-        await TokenService.removeToken(req.cookies.refreshToken);
+      if (req.body.refreshToken) {
+        await TokenService.removeToken(req.body.refreshToken);
       }
       await TokenService.saveToken(user.id, refreshToken);
-      res.cookie("refreshToken", refreshToken, {
-        maxAge: 2592000000,
-        httpOnly: true,
-        sameSite: "None",
-        secure: true,
-      });
+      // res.cookie("refreshToken", refreshToken, {
+      //   maxAge: 2592000000,
+      //   httpOnly: true,
+      //   sameSite: "None",
+      //   secure: true,
+      // });
       res.json({ user, accessToken, refreshToken });
     } catch (e) {
       console.log(e);
       res
-        .status(400)
+        .status(500)
         .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
     }
   }
   async logout(req, res) {
     try {
-      const { refreshToken } = req.cookies;
+      const { refreshToken } = req.body;
       await TokenService.removeToken(refreshToken);
-      res.clearCookie("refreshToken");
+      // res.clearCookie("refreshToken");
       res.json({ msg: "success" });
     } catch (e) {
       console.log(e);
       res
-        .status(400)
+        .status(500)
         .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
     }
   }
   async refresh(req, res) {
     try {
-      const { refreshToken } = req.cookies;
+      const { refreshToken } = req.body;
       if (!refreshToken) {
         return res.status(400).json({ msg: "token not found" });
       }
@@ -115,17 +115,17 @@ class AuthController {
       const newTokens = TokenService.generateTokens(user.id, user.nickname);
       await TokenService.removeToken(refreshToken);
       await TokenService.saveToken(user.id, newTokens.refreshToken);
-      res.cookie("refreshToken", newTokens.refreshToken, {
-        maxAge: 2592000000,
-        httpOnly: true,
-        sameSite: "None",
-        secure: true,
-      });
+      // res.cookie("refreshToken", newTokens.refreshToken, {
+      //   maxAge: 2592000000,
+      //   httpOnly: true,
+      //   sameSite: "None",
+      //   secure: true,
+      // });
       return res.json({ user, ...newTokens });
     } catch (e) {
       console.log(e);
       res
-        .status(400)
+        .status(500)
         .json({ msg: "Произошла неизвестная ошибка, повторите запрос" });
     }
   }

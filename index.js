@@ -4,7 +4,7 @@ const postRouter = require("./Database/routes/post.routes");
 const authRouter = require("./Database/routes/auth.routes");
 const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
 require("dotenv").config();
 cloudinary.config({
   cloud_name: "aqemcozz",
@@ -29,7 +29,7 @@ app.use(
   })
 );
 
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use("/api", userRouter);
 app.use("/api", postRouter);
 app.use("/api", authRouter);
