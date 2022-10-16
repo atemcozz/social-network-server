@@ -12,6 +12,7 @@ router.post(
 );
 router.post("/like_post", authMiddleware, postController.likePost);
 router.post("/post/comment", authMiddleware, postController.createComment);
+router.post("/post/bookmark/:id", authMiddleware, postController.addBookmark);
 router.delete(
   "/post/comment/:id",
   authMiddleware,

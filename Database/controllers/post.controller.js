@@ -207,6 +207,7 @@ class PostController {
   }
   async getPosts(req, res) {
     try {
+      const { tags, sort } = req.query;
       const user = tokenService.validateAccessToken(
         req.headers.authorization?.split(" ")[1]
       );
@@ -232,7 +233,22 @@ class PostController {
         .countDistinct("pl as likes_count")
         .countDistinct("c as comments_count")
         .groupBy("p.id", "u.id", "g.id")
-        .orderBy("p.created_at", "desc");
+        .modify((builder) => {
+          if (tags) {
+            builder.whereIn("t.tag", tags.split(","));
+            builder.havingRaw(
+              "count(distinct t.tag) = ?",
+              tags.split(",").length
+            );
+          }
+          if (sort) {
+            if (sort === "popular") builder.orderBy("likes_count", "desc");
+            else builder.orderBy("p.created_at", "desc");
+          } else {
+            builder.orderBy("p.created_at", "desc");
+          }
+        });
+
       // const posts = (
       //   await db.query(`SELECT p.id,p.title,p.description,p.created_at,
       // to_jsonb(u.*) - 'passwordhash' AS USER,
@@ -460,6 +476,11 @@ class PostController {
     } catch (error) {
       req.status(400).end();
     }
+  }
+  async addBookmark(req, res) {
+    const post_id = req.params.id;
+    const user = await knex("person").where({ id }).first();
+    res.json(user);
   }
 }
 
