@@ -241,6 +241,7 @@ class PostController {
               tags.split(",").length
             );
           }
+
           if (sort) {
             if (sort === "popular") builder.orderBy("likes_count", "desc");
             else builder.orderBy("p.created_at", "desc");
@@ -359,7 +360,10 @@ class PostController {
   async deletePost(req, res) {
     try {
       const { id } = req.params;
-      const post = await knex("post").select("*").where({ id });
+      const post = await knex("post").select("*").where({ id }).first();
+      if (req.user.id !== post.user_id) {
+        return res.status(403).end();
+      }
       // const post = (await db.query(`select * from post where id=$1`, [id]))
       //   .rows[0];
       if (!post) {
