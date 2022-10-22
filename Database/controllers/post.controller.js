@@ -420,8 +420,13 @@ class PostController {
   }
   async createComment(req, res) {
     try {
-      const { user_id, post_id, body } = req.body;
-      await knex("comment").insert({ user_id, post_id, body });
+      const { user_id, post_id, body, belongsTo } = req.body;
+      await knex("comment").insert({
+        user_id,
+        post_id,
+        body,
+        belonging: belongsTo,
+      });
       // await db.query(
       //   "insert into comment (user_id,post_id,body) values ($1,$2,$3)",
       //   [user_id, post_id, body]
@@ -441,6 +446,7 @@ class PostController {
           "c.body",
           "c.created_at",
           "c.post_id",
+          "c.belonging as belongsTo",
           knex.raw("to_jsonb(u.*) - 'passwordhash' AS USER")
         )
         .where({ post_id })
@@ -478,7 +484,8 @@ class PostController {
       // await db.query("delete from comment where id=$1", [id]);
       res.end();
     } catch (error) {
-      req.status(400).end();
+      res.status(400).end();
+      console.log(error);
     }
   }
   async addBookmark(req, res) {
