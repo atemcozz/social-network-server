@@ -421,18 +421,36 @@ class PostController {
   async createComment(req, res) {
     try {
       const { user_id, post_id, body, belongsTo } = req.body;
-      await knex("comment").insert({
-        user_id,
-        post_id,
-        body,
-        belonging: belongsTo,
-      });
+
+      const { id } = (
+        await knex("comment")
+          .insert({
+            user_id,
+            post_id,
+            body,
+            belonging: belongsTo,
+          })
+          .returning("id")
+      )[0];
+      const comment = await knex("comment as c")
+        .join("person as u", "c.user_id", "u.id")
+        .select(
+          "c.id",
+          "c.body",
+          "c.created_at",
+          "c.post_id",
+          "c.belonging as belongsTo",
+          knex.raw("to_jsonb(u.*) - 'passwordhash' AS USER")
+        )
+        .where("c.id", id)
+        .first();
       // await db.query(
       //   "insert into comment (user_id,post_id,body) values ($1,$2,$3)",
       //   [user_id, post_id, body]
       // );
-      res.end();
+      res.json(comment);
     } catch (e) {
+      console.log(e);
       res.status(400).end();
     }
   }
