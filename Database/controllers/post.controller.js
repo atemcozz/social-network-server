@@ -1,6 +1,7 @@
 const tokenService = require("../../service/token-service");
 const knex = require("../db");
 const cloudinary = require("cloudinary").v2;
+const { Posts } = require("../knex_templates/templates");
 class PostController {
   async createPost(req, res) {
     try {
@@ -73,57 +74,22 @@ class PostController {
       if (Number(id) !== parseInt(id)) {
         return res.status(404).end();
       }
-      const posts = await knex("post as p")
-        .join("person as u", "p.user_id", "u.id")
-        .leftJoin("post_media as pm", "p.id", "pm.post_id")
-        .leftJoin("comment as c", "p.id", "c.post_id")
-        .leftJoin("post_like as pl", "p.id", "pl.post_id")
-        .leftJoin("post_tag as t", "p.id", "t.post_id")
-        .leftJoin("post_geo as g", "p.id", "g.post_id")
-        .select(
-          "p.id",
-          "p.title",
-          "p.description",
-          "p.created_at",
-          knex.raw("to_jsonb(u.*) - 'passwordhash' as user"),
-          knex.raw(
-            "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
-          ),
-          knex.raw("array_agg(distinct t.tag) AS tags"),
-          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
-        )
-        .count({ likes_count: knex.raw("distinct pl") })
-        .count({ comments_count: knex.raw("distinct c") })
+      const posts = await Posts()
         .where({ "p.user_id": id })
         .groupBy("p.id", "u.id", "g.id")
         .orderBy("p.created_at", "desc");
-      // const posts = (
-      //   await db.query(
-      //     `SELECT p.id,p.title,p.description,p.created_at,
-      // to_jsonb(u.*) - 'passwordhash' AS USER,
-      // array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      // array_agg(distinct t.tag) AS tags,
-      // (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
-      // (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
-      // FROM post p
-      // JOIN person u ON p.user_id = u.id
-      // LEFT JOIN post_media pm ON p.id = pm.post_id
-      // LEFT JOIN post_tag t on p.id = t.post_id
-      // WHERE p.user_id = $1
-      // GROUP BY p.id, u.id
-      // ORDER BY p.created_at DESC`,
-      //     [id]
-      //   )
-      // ).rows;
       if (user) {
         for (const post of posts) {
           post.userLike =
-            // await db.query(
-            //   "select count(*) from post_like where user_id=$1 and post_id=$2",
-            //   [user.id, post.id]
-            // )
             (
               await knex("post_like")
+                .count()
+                .where({ user_id: user.id, post_id: post.id })
+                .first()
+            ).count > 0;
+          post.userBookmark =
+            (
+              await knex("bookmark")
                 .count()
                 .where({ user_id: user.id, post_id: post.id })
                 .first()
@@ -133,7 +99,7 @@ class PostController {
       res.json(posts);
     } catch (e) {
       console.error(e);
-      res.status(400).end();
+      res.status(500).end();
     }
   }
   async getPostByID(req, res) {
@@ -145,48 +111,11 @@ class PostController {
       const user = tokenService.validateAccessToken(
         req.headers.authorization?.split(" ")[1]
       );
-      const post = await knex("post as p")
-        .join("person as u", "p.user_id", "u.id")
-        .leftJoin("post_media as pm", "p.id", "pm.post_id")
-        .leftJoin("comment as c", "p.id", "c.post_id")
-        .leftJoin("post_like as pl", "p.id", "pl.post_id")
-        .leftJoin("post_tag as t", "p.id", "t.post_id")
-        .leftJoin("post_geo as g", "p.id", "g.post_id")
-        .first(
-          "p.id",
-          "p.title",
-          "p.description",
-          "p.created_at",
-          knex.raw("to_jsonb(u.*) - 'passwordhash' as user"),
-          knex.raw(
-            "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
-          ),
-          knex.raw("array_agg(distinct t.tag) AS tags"),
-          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
-        )
-        .countDistinct("pl as likes_count")
-        .countDistinct("c as comments_count")
+      const post = await Posts()
         .where({ "p.id": id })
         .groupBy("p.id", "u.id", "g.id")
-        .orderBy("likes_count", "desc");
-      // const post = (
-      //   await db.query(
-      //     `SELECT p.id,p.title,p.description,p.created_at,
-      // to_jsonb(u.*) - 'passwordhash' AS USER,
-      // array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      // array_agg(distinct t.tag) AS tags,
-      // (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
-      // (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
-      // FROM post p
-      // JOIN person u ON p.user_id = u.id
-      // LEFT JOIN post_tag t on p.id = t.post_id
-      // LEFT JOIN post_media pm ON p.id = pm.post_id
-      // WHERE p.id=$1
-      // GROUP BY p.id, u.id
-      // ORDER BY p.created_at DESC`,
-      //     [id]
-      //   )
-      // ).rows[0];
+        .orderBy("likes_count", "desc")
+        .first();
       if (!post) {
         return res.status(404).end();
       }
@@ -197,7 +126,14 @@ class PostController {
               .count()
               .where({ user_id: user.id, post_id: post.id })
               .first()
-          ).count > 0; // ) //   [user.id, post.id] //   "select count(*) from post_like where user_id=$1 and post_id=$2", // await db.query(
+          ).count > 0;
+        post.userBookmark =
+          (
+            await knex("bookmark")
+              .count()
+              .where({ user_id: user.id, post_id: post.id })
+              .first()
+          ).count > 0;
       }
       res.status(200).json(post);
     } catch (error) {
@@ -211,27 +147,7 @@ class PostController {
       const user = tokenService.validateAccessToken(
         req.headers.authorization?.split(" ")[1]
       );
-      const posts = await knex("post as p")
-        .join("person as u", "p.user_id", "u.id")
-        .leftJoin("post_media as pm", "p.id", "pm.post_id")
-        .leftJoin("comment as c", "p.id", "c.post_id")
-        .leftJoin("post_like as pl", "p.id", "pl.post_id")
-        .leftJoin("post_tag as t", "p.id", "t.post_id")
-        .leftJoin("post_geo as g", "p.id", "g.post_id")
-        .select(
-          "p.id",
-          "p.title",
-          "p.description",
-          "p.created_at",
-          knex.raw("to_jsonb(u.*) - 'passwordhash' as user"),
-          knex.raw(
-            "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
-          ),
-          knex.raw("array_agg(distinct t.tag) AS tags"),
-          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
-        )
-        .countDistinct("pl as likes_count")
-        .countDistinct("c as comments_count")
+      const posts = await Posts()
         .groupBy("p.id", "u.id", "g.id")
         .modify((builder) => {
           if (tags) {
@@ -250,21 +166,6 @@ class PostController {
           }
         });
 
-      // const posts = (
-      //   await db.query(`SELECT p.id,p.title,p.description,p.created_at,
-      // to_jsonb(u.*) - 'passwordhash' AS USER,
-      // array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      // array_agg(distinct t.tag) AS tags,
-      // (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
-      // (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
-      // FROM post p
-      // JOIN person u ON p.user_id = u.id
-      // LEFT JOIN post_media pm ON p.id = pm.post_id
-      // LEFT JOIN post_tag t on p.id = t.post_id
-      // GROUP BY p.id, u.id
-      // ORDER BY p.created_at DESC`)
-      // ).rows;
-
       if (user) {
         for (const post of posts) {
           post.userLike =
@@ -274,13 +175,13 @@ class PostController {
                 .where({ user_id: user.id, post_id: post.id })
                 .first()
             ).count > 0;
-          // post.userLike =
-          //   (
-          //     await db.query(
-          //       "select count(*) from post_like where user_id=$1 and post_id=$2",
-          //       [user.id, post.id]
-          //     )
-          //   ).rows[0].count > 0;
+          post.userBookmark =
+            (
+              await knex("bookmark")
+                .count()
+                .where({ user_id: user.id, post_id: post.id })
+                .first()
+            ).count > 0;
         }
       }
       res.json(posts);
@@ -295,48 +196,21 @@ class PostController {
       const user = tokenService.validateAccessToken(
         req.headers.authorization?.split(" ")[1]
       );
-      const posts = await knex("post as p")
-        .join("person as u", "p.user_id", "u.id")
-        .leftJoin("post_media as pm", "p.id", "pm.post_id")
-        .leftJoin("comment as c", "p.id", "c.post_id")
-        .leftJoin("post_like as pl", "p.id", "pl.post_id")
-        .leftJoin("post_tag as t", "p.id", "t.post_id")
-        .leftJoin("post_geo as g", "p.id", "g.post_id")
-        .select(
-          "p.id",
-          "p.title",
-          "p.description",
-          "p.created_at",
-          knex.raw("to_jsonb(u.*) - 'passwordhash' as user"),
-          knex.raw(
-            "array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments"
-          ),
-          knex.raw("array_agg(distinct t.tag) AS tags"),
-          knex.raw("to_jsonb(g.*) - 'post_id' - 'id' as geo")
-        )
-        .countDistinct("pl as likes_count")
-        .countDistinct("c as comments_count")
+      const posts = await Posts()
         .groupBy("p.id", "u.id", "g.id")
         .orderBy("likes_count", "desc");
-      // const posts = (
-      //   await db.query(`SELECT p.id,p.title,p.description,p.created_at,
-      // to_jsonb(u.*) - 'passwordhash' AS USER,
-      // array_agg(distinct to_jsonb(pm.*) - 'id' - 'post_id') AS attachments,
-      // array_agg(distinct t.tag) AS tags,
-      // (SELECT count(*) FROM post_like WHERE post_id = p.id ) AS likes_count,
-      // (SELECT count(*) FROM COMMENT WHERE post_id = p.id ) AS comments_count
-      // FROM post p
-      // JOIN person u ON p.user_id = u.id
-      // LEFT JOIN post_media pm ON p.id = pm.post_id
-      // LEFT JOIN post_tag t on p.id = t.post_id
-      // GROUP BY p.id, u.id
-      // ORDER BY likes_count DESC`)
-      // ).rows;
       if (user) {
         for (const post of posts) {
           post.userLike =
             (
               await knex("post_like")
+                .count()
+                .where({ user_id: user.id, post_id: post.id })
+                .first()
+            ).count > 0;
+          post.userBookmark =
+            (
+              await knex("bookmark")
                 .count()
                 .where({ user_id: user.id, post_id: post.id })
                 .first()
@@ -506,10 +380,38 @@ class PostController {
       console.log(error);
     }
   }
-  async addBookmark(req, res) {
-    const post_id = req.params.id;
-    const user = await knex("person").where({ id }).first();
-    res.json(user);
+  async getSavedPosts(req, res) {
+    try {
+      const id = req.params.id;
+      const user = req.user;
+      const posts = await Posts()
+        .leftJoin("bookmark as b", "p.id", "b.post_id")
+        .where({ "b.user_id": user.id })
+        .groupBy("p.id", "u.id", "g.id")
+        .orderBy("p.created_at", "desc");
+      if (user) {
+        for (const post of posts) {
+          post.userLike =
+            (
+              await knex("post_like")
+                .count()
+                .where({ user_id: user.id, post_id: post.id })
+                .first()
+            ).count > 0;
+          post.userBookmark =
+            (
+              await knex("bookmark")
+                .count()
+                .where({ user_id: user.id, post_id: post.id })
+                .first()
+            ).count > 0;
+        }
+      }
+      res.json(posts);
+    } catch (e) {
+      console.error(e);
+      res.status(500).end();
+    }
   }
 }
 

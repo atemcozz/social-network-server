@@ -14,5 +14,5 @@ router.put(
   userController.updateUser
 );
 router.delete("/user/:id", authMiddleware, userController.deleteUser);
-
+router.post("/bookmark", authMiddleware, userController.addBookmark);
 module.exports = router;

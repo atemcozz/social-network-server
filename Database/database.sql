@@ -68,3 +68,10 @@ create table if not exists post_geo(
   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
 
+create TABLE IF NOT EXISTS bookmark(
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  post_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
+);

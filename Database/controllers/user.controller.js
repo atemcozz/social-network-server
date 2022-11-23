@@ -7,14 +7,24 @@ class UserController {
     res.json(users.rows);
   }
   async getUserByNickname(req, res) {
-    const nickname = req.query.nickname;
-    const user = await knex("person").where({ username }).first();
-    res.json(user);
+    try {
+      const nickname = req.query.nickname;
+      const user = await knex("person").where({ username }).first();
+      res.json(user);
+    } catch (error) {
+      console.log(error);
+      res.status(500).end();
+    }
   }
   async getOneUser(req, res) {
-    const id = req.params.id;
-    const user = await knex("person").where({ id }).first();
-    res.json(user);
+    try {
+      const id = req.params.id;
+      const user = await knex("person").where({ id }).first();
+      res.json(user);
+    } catch (error) {
+      console.log(error);
+      res.status(500).end();
+    }
   }
   async updateUser(req, res) {
     try {
@@ -75,6 +85,33 @@ class UserController {
     try {
       const id = req.params.id;
       await knex("person").del().where({ id });
+      res.status(200).end();
+    } catch (error) {
+      console.log(error);
+      res.status(500).end();
+    }
+  }
+  async addBookmark(req, res) {
+    try {
+      const user = req.user;
+      const { post_id } = req.body;
+      if (!user) {
+        res.status(401).end();
+      }
+      const bookmark = await knex("bookmark")
+        .where({
+          user_id: user.id,
+          post_id,
+        })
+        .first();
+      if (bookmark) {
+        await knex("bookmark").del().where({
+          user_id: user.id,
+          post_id,
+        });
+      } else {
+        await knex("bookmark").insert({ user_id: user.id, post_id });
+      }
       res.status(200).end();
     } catch (error) {
       console.log(error);

@@ -12,7 +12,7 @@ router.post(
 );
 router.post("/like_post", authMiddleware, postController.likePost);
 router.post("/post/comment", authMiddleware, postController.createComment);
-router.post("/post/bookmark/:id", authMiddleware, postController.addBookmark);
+// router.post("/post/bookmark/:id", authMiddleware, postController.addBookmark);
 router.delete(
   "/post/comment/:id",
   authMiddleware,
@@ -20,6 +20,7 @@ router.delete(
 );
 router.get("/post/comments/:id", postController.getComments);
 router.get("/posts", postController.getPosts);
+router.get("/posts/saved", authMiddleware, postController.getSavedPosts);
 router.get("/posts/new", postController.getPosts);
 router.get("/posts/popular", postController.getPopularPosts);
 router.get("/post/:id", postController.getPostByID);
