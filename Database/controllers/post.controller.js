@@ -52,7 +52,7 @@ class PostController {
     const user = tokenService.validateAccessToken(
       req.headers.authorization?.split(" ")[1]
     );
-    if (Number(id) !== parseInt(id)) {
+    if (isNaN(id)) {
       return next(ApiError.NotFoundError());
     }
     const posts = await Posts()
@@ -81,7 +81,8 @@ class PostController {
   }
   async getPostByID(req, res, next) {
     const id = req.params.id;
-    if (Number(id) !== parseInt(id)) {
+
+    if (isNaN(id)) {
       return next(ApiError.NotFoundError());
     }
     const user = tokenService.validateAccessToken(
@@ -251,6 +252,9 @@ class PostController {
   }
   async getComments(req, res, next) {
     const post_id = req.params.id;
+    if (isNaN(post_id)) {
+      return next(ApiError.NotFoundError());
+    }
     const comments = await knex("comment as c")
       .join("person as u", "c.user_id", "u.id")
       .select(
