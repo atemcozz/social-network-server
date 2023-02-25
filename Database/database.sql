@@ -11,7 +11,8 @@ create TABLE IF NOT EXISTS person(
 create TABLE IF NOT EXISTS post(
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
-  description TEXT,
+  preview VARCHAR(255) NOT NULL,
+  content TEXT,
   user_id INTEGER NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE
@@ -47,26 +48,26 @@ create TABLE IF NOT EXISTS token(
   user_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE
 );
-create TABLE IF NOT EXISTS post_media(
-  id SERIAL PRIMARY KEY,
-  type VARCHAR(255) NOT NULL, 
-  url VARCHAR(2048) NOT NULL, 
-  post_id INTEGER NOT NULL,
-  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
-);
+-- create TABLE IF NOT EXISTS post_media(
+--   id SERIAL PRIMARY KEY,
+--   type VARCHAR(255) NOT NULL, 
+--   url VARCHAR(2048) NOT NULL, 
+--   post_id INTEGER NOT NULL,
+--   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
+-- );
 create table if not exists post_tag(
   id SERIAL PRIMARY KEY,
   post_id INTEGER NOT NULL,
   tag VARCHAR(255) NOT NULL,
   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
-create table if not exists post_geo(
-  id SERIAL PRIMARY KEY,
-  post_id INTEGER NOT NULL,
-  lat double precision not null,
-  lng double precision not null,
-  FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
-);
+-- create table if not exists post_geo(
+--   id SERIAL PRIMARY KEY,
+--   post_id INTEGER NOT NULL,
+--   lat double precision not null,
+--   lng double precision not null,
+--   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
+-- );
 
 create TABLE IF NOT EXISTS bookmark(
   id SERIAL PRIMARY KEY,

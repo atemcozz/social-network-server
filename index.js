@@ -4,14 +4,8 @@ const postRouter = require("./Database/routes/post.routes");
 const authRouter = require("./Database/routes/auth.routes");
 const cors = require("cors");
 const errorMiddleware = require("./middleware/errorMiddleware");
-const cloudinary = require("cloudinary").v2;
 // const cookieParser = require("cookie-parser");
 require("dotenv").config();
-cloudinary.config({
-  cloud_name: "aqemcozz",
-  api_key: "136287691914888",
-  api_secret: "ZEWy_ik__AS86njecDGK-2_fQk0",
-});
 
 const app = express();
 app.use(express.json());

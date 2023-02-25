@@ -1,18 +1,12 @@
 const express = require("express");
 const router = express();
 const userController = require("../controllers/user.controller");
-const { upload } = require("../../middleware/multer");
 const authMiddleware = require("../../middleware/authMiddleware");
 //router.post("/user", userController.createUser);
 router.get("/users", userController.getUsers);
 //router.get("/user", userController.getUserByNickname);
 router.get("/user/:id", userController.getOneUser);
-router.put(
-  "/user/:id",
-  authMiddleware,
-  upload.single("avatar"),
-  userController.updateUser
-);
+router.put("/user/:id", authMiddleware, userController.updateUser);
 router.delete("/user/:id", authMiddleware, userController.deleteUser);
 router.post("/bookmark", authMiddleware, userController.addBookmark);
 module.exports = router;

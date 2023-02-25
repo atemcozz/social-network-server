@@ -3,11 +3,11 @@ const router = express();
 
 const postController = require("../controllers/post.controller");
 const authMiddleware = require("../../middleware/authMiddleware");
-const { upload } = require("../../middleware/multer");
+
 router.post(
   "/post",
   authMiddleware,
-  upload.array("files[]"),
+
   postController.createPost
 );
 router.post("/like_post", authMiddleware, postController.likePost);

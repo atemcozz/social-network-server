@@ -18,8 +18,8 @@ class UserController {
     res.json(user);
   }
   async updateUser(req, res, next) {
-    const { name, surname, nickname, password } = req.body;
-    const avatar = req.file;
+    const { name, surname, nickname, password, avatar } = req.body;
+
     const id = req.params.id;
     if (Number(id) !== parseInt(id)) {
       return next(ApiError.NotFoundError());
@@ -45,7 +45,7 @@ class UserController {
       await knex("person").update({ passwordhash: passwordHash }).where({ id });
     }
     if (avatar) {
-      await knex("person").update({ avatar_url: avatar.path }).where({ id });
+      await knex("person").update({ avatar_url: avatar }).where({ id });
     }
     const user = await knex("person").where({ id }).first();
 

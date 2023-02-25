@@ -5,44 +5,32 @@ const cloudinary = require("cloudinary").v2;
 const { Posts } = require("../knex_templates/templates");
 class PostController {
   async createPost(req, res, next) {
-    const files = req.files;
-    const { title, description, tags, lat, lng } = req.body;
+    const { title, content, tags, preview } = req.body;
     const user_id = req.user.id;
 
     if (title?.trim().length === 0) {
       return next(ApiError.BadRequestError("ERR_POST_TITLE_REQUIRED"));
-    }
-    if (files.length === 0) {
-      return next(ApiError.BadRequestError("ERR_ATTACHMENT_REQUIRED"));
     }
     const newPost = (
       await knex("post")
         .insert({
           user_id,
           title: title.trim(),
-          description: description.trim(),
+          content: content,
+          preview: preview,
         })
         .returning("*")
     )[0];
-    if (files) {
-      for (const at of files) {
-        const type = at.mimetype.split("/")[0].replace("image", "photo");
-        await knex("post_media").insert({
-          type,
-          url: at.path,
+
+    if (tags?.length > 0) {
+      const tagsRows = tags
+        .filter((tag) => tag.trim().length > 0)
+        .map((tag) => ({
           post_id: newPost.id,
-        });
-      }
-    }
-    if (tags) {
-      for (const tag of tags) {
-        if (tag.trim().length > 0) {
-          await knex("post_tag").insert({ post_id: newPost.id, tag });
-        }
-      }
-    }
-    if (lat && lng) {
-      await knex("post_geo").insert({ post_id: newPost.id, lat, lng });
+          tag,
+        }));
+
+      await knex("post_tag").insert(tagsRows);
     }
 
     res.json({ post_id: newPost.id });
@@ -57,7 +45,7 @@ class PostController {
     }
     const posts = await Posts()
       .where({ "p.user_id": id })
-      .groupBy("p.id", "u.id", "g.id")
+      .groupBy("p.id", "u.id")
       .orderBy("p.created_at", "desc");
     if (user) {
       for (const post of posts) {
@@ -90,7 +78,7 @@ class PostController {
     );
     const post = await Posts()
       .where({ "p.id": id })
-      .groupBy("p.id", "u.id", "g.id")
+      .groupBy("p.id", "u.id")
       .orderBy("likes_count", "desc")
       .first();
     if (!post) {
@@ -120,7 +108,7 @@ class PostController {
       req.headers.authorization?.split(" ")[1]
     );
     const posts = await Posts()
-      .groupBy("p.id", "u.id", "g.id")
+      .groupBy("p.id", "u.id")
       .modify((builder) => {
         if (tags) {
           builder.whereIn("t.tag", tags.split(","));
@@ -163,7 +151,7 @@ class PostController {
       req.headers.authorization?.split(" ")[1]
     );
     const posts = await Posts()
-      .groupBy("p.id", "u.id", "g.id")
+      .groupBy("p.id", "u.id")
       .orderBy("likes_count", "desc");
     if (user) {
       for (const post of posts) {
@@ -289,7 +277,7 @@ class PostController {
     const posts = await Posts()
       .leftJoin("bookmark as b", "p.id", "b.post_id")
       .where({ "b.user_id": user.id })
-      .groupBy("p.id", "u.id", "g.id")
+      .groupBy("p.id", "u.id")
       .orderBy("p.created_at", "desc");
     if (user) {
       for (const post of posts) {
