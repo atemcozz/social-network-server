@@ -1,7 +1,6 @@
 const tokenService = require("../../service/token-service");
 const knex = require("../db");
 const ApiError = require("../exception/ApiError");
-const cloudinary = require("cloudinary").v2;
 const { Posts } = require("../knex_templates/templates");
 class PostController {
   async createPost(req, res, next) {

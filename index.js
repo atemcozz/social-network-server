@@ -4,7 +4,6 @@ const postRouter = require("./Database/routes/post.routes");
 const authRouter = require("./Database/routes/auth.routes");
 const cors = require("cors");
 const errorMiddleware = require("./middleware/errorMiddleware");
-// const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const app = express();
@@ -24,7 +23,6 @@ app.use(
   })
 );
 
-// app.use(cookieParser());
 app.use("/api", userRouter);
 app.use("/api", postRouter);
 app.use("/api", authRouter);
