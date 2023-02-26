@@ -1,6 +1,7 @@
 const { body } = require("express-validator");
 
 const registerValidation = [
+  body("email", "ERR_INCORRECT_EMAIL").trim().notEmpty().isEmail(),
   body("nickname", "ERR_NICKNAME_TOO_SHORT").trim().notEmpty().isLength({
     min: 6,
   }),
