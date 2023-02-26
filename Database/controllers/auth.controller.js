@@ -33,10 +33,10 @@ class AuthController {
         })
         .returning("*")
     )[0];
-    const { accessToken, refreshToken } = TokenService.generateTokens(
-      user.id,
-      nickname
-    );
+    const { accessToken, refreshToken } = TokenService.generateTokens({
+      id: user.id,
+      nickname,
+    });
     await TokenService.saveToken(user.id, refreshToken);
     res.status(200).json({ user, accessToken, refreshToken });
   }
@@ -55,10 +55,10 @@ class AuthController {
     if (!validPassword) {
       return next(ApiError.BadRequestError("ERR_WRONG_NICKNAME_PASSWORD"));
     }
-    const { accessToken, refreshToken } = TokenService.generateTokens(
-      user.id,
-      nickname
-    );
+    const { accessToken, refreshToken } = TokenService.generateTokens({
+      id: user.id,
+      nickname,
+    });
     if (req.body.refreshToken) {
       await TokenService.removeToken(req.body.refreshToken);
     }
