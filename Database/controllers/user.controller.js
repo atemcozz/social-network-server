@@ -2,6 +2,7 @@ const knex = require("../db");
 const bcrypt = require("bcrypt");
 const tokenService = require("../../service/token-service");
 const ApiError = require("../exception/ApiError");
+const { validationResult } = require("express-validator");
 class UserController {
   async getUsers(req, res, next) {
     const users = await knex("person");
@@ -19,8 +20,11 @@ class UserController {
   }
   async updateUser(req, res, next) {
     const { name, surname, nickname, password, avatar } = req.body;
-
+    const errors = validationResult(req);
     const id = req.params.id;
+    if (!errors.isEmpty()) {
+      return next(ApiError.BadRequestError(errors.array().at(0).msg));
+    }
     if (Number(id) !== parseInt(id)) {
       return next(ApiError.NotFoundError());
     }
