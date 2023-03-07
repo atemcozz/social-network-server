@@ -77,3 +77,10 @@ create TABLE IF NOT EXISTS bookmark(
   FOREIGN KEY (user_id) REFERENCES person (id) ON DELETE CASCADE,
   FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS person_subscription(
+  id SERIAL PRIMARY KEY,
+  subject_id INTEGER NOT NULL,
+  object_id INTEGER NOT NULL,
+  FOREIGN KEY (subject_id) REFERENCES person (id) ON DELETE CASCADE,
+  FOREIGN KEY (object_id) REFERENCES person (id) ON DELETE CASCADE
+)

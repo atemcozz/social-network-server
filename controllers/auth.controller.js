@@ -1,11 +1,11 @@
-const knex = require("../db");
+const knex = require("../db/db");
 const UserController = require("./user.controller");
 const bcrypt = require("bcrypt");
-const TokenService = require("../../service/token-service");
+const TokenService = require("../service/token-service");
 const { validationResult } = require("express-validator");
 const ApiError = require("../exception/ApiError");
-const MailService = require("../../service/MailService");
-const generate = require("../../utils/passwordGenerator");
+const MailService = require("../service/MailService");
+const generate = require("../utils/passwordGenerator");
 class AuthController {
   async register(req, res, next) {
     const errors = validationResult(req); //Проверяем валидность запроса

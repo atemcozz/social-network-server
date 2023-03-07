@@ -1,4 +1,4 @@
-const knex = require("../db");
+const knex = require("../db/db");
 function Posts() {
   return knex("post as p")
     .join("person as u", "p.user_id", "u.id")

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const ApiError = require("../Database/exception/ApiError");
+const ApiError = require("../exception/ApiError");
 const TokenService = require("../service/token-service");
 module.exports = function (req, res, next) {
   if (req.method === "OPTIONS") {

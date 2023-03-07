@@ -1,5 +1,5 @@
-const tokenService = require("../../service/token-service");
-const knex = require("../db");
+const tokenService = require("../service/token-service");
+const knex = require("../db/db");
 const ApiError = require("../exception/ApiError");
 const { Posts } = require("../knex_templates/templates");
 class PostController {

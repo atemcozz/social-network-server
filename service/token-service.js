@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET } = require("./constants");
-const knex = require("../Database/db");
+const knex = require("../db/db");
 class TokenService {
   generateTokens(data) {
     const accessToken = jwt.sign(data, JWT_ACCESS_SECRET, {
@@ -35,7 +35,6 @@ class TokenService {
       const userData = jwt.verify(token, JWT_REFRESH_SECRET);
       return userData;
     } catch (e) {
-      console.log(e);
       return null;
     }
   }

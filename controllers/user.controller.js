@@ -1,6 +1,6 @@
-const knex = require("../db");
+const knex = require("../db/db");
 const bcrypt = require("bcrypt");
-const tokenService = require("../../service/token-service");
+const tokenService = require("../service/token-service");
 const ApiError = require("../exception/ApiError");
 const { validationResult } = require("express-validator");
 class UserController {
@@ -15,7 +15,15 @@ class UserController {
   }
   async getOneUser(req, res, next) {
     const id = req.params.id;
-    const user = await knex("person").where({ id }).first();
+    let user = await knex("person").where({ id }).first();
+    if (req.user) {
+      const sub = await knex("person_subscription")
+        .where({ subject_id: req.user.id, object_id: user.id })
+        .first();
+      if (sub) {
+        user.subscribed = true;
+      }
+    }
     res.json(user);
   }
   async updateUser(req, res, next) {
@@ -39,7 +47,7 @@ class UserController {
       const user = await knex("person").where({ nickname }).first();
 
       if (user && user.nickname !== req.user.nickname) {
-        return next(ApiError.BadRequestError("NICKNAME_ALREADY_TAKEN"));
+        return next(ApiError.BadRequestError("ERR_NICKNAME_ALREADY_TAKEN"));
       }
       await knex("person").update({ nickname }).where({ id });
     }
@@ -82,5 +90,35 @@ class UserController {
     }
     res.status(200).end();
   }
+  async subscribeUser(req, res, next) {
+    const user = req.user;
+    const object_id = req.params.id;
+    if (!/^[1-9]\d*$/.test(object_id)) {
+      return next(ApiError.BadRequestError());
+    }
+    const subscription = await knex("person_subscription")
+      .where({ subject_id: user.id, object_id })
+      .first();
+    if (subscription) {
+      await knex("person_subscription")
+        .del()
+        .where({ subject_id: user.id, object_id });
+    } else {
+      await knex("person_subscription").insert({
+        subject_id: user.id,
+        object_id,
+      });
+    }
+    return res.status(200).end();
+  }
+  async getUserSubscriptions(req, res, next) {
+    const id = req.params.id;
+    console.log(id);
+    const subscriptions = await knex("person_subscription").where({
+      subject_id: id,
+    });
+    res.json(subscriptions);
+  }
 }
+
 module.exports = new UserController();
